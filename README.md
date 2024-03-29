@@ -1,2 +1,2 @@
-# execution_time_of_sorting_algorithms
+# Execution time of sorting algorithms
 Atividade da disciplina de estrutura de dados
