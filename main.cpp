@@ -39,14 +39,26 @@ vector<int> criarVetorAleatorio(int tamanho) {
 // Função para medir o tempo de execução de uma função de ordenação
 template<typename Tipo>
 double medirTempo(void (*funcaoOrdenacao)(vector<Tipo> &), vector<Tipo> &vetor) {
-    // Marca o tempo inicial
-    auto inicio = steady_clock::now();
-    // Chama a função de ordenação
-    funcaoOrdenacao(vetor);
-    // Marca o tempo final
-    auto fim = steady_clock::now();
-    // Calcula o tempo de execução em milissegundos e retorna
-    return duration<double, milli>(fim - inicio).count();
+    int numInteracoes = 5;
+    double somaTempo, tempoMedio;
+    vector<int> vetorCopia = vetor;
+
+    for (int i = 0; i < numInteracoes; i++) {
+        // Marca o tempo inicial
+        auto inicio = steady_clock::now();
+        // Chama a função de ordenação
+        funcaoOrdenacao(vetor);
+        // Marca o tempo final
+        auto fim = steady_clock::now();
+        vetor = vetorCopia;
+        // Calcula o tempo de execução em milissegundos e retorna
+        somaTempo += duration<double, milli>(fim - inicio).count();
+    }
+
+    // Calcula a média do tempo de execução do algoritmo de ordenação
+    tempoMedio = somaTempo/numInteracoes;
+
+    return tempoMedio;
 }
 
 // Algoritmo de ordenação: Bubble Sort
@@ -117,33 +129,36 @@ void ordenacaoShell(vector<int> &vetor) {
 }
 
 // Algoritmo de ordenação: Merge Sort
-void merge(vector<int> &vetor, int inicio, int meio, int fim) {
-    int tamanhoEsquerdo = meio - inicio + 1;
-    int tamanhoDireito = fim - meio;
-
-    vector<int> vetorEsquerdo(tamanhoEsquerdo), vetorDireito(tamanhoDireito);
-
-    // Copia os elementos para os subvetores esquerdo e direito
-    for (int i = 0; i < tamanhoEsquerdo; ++i)
-        vetorEsquerdo[i] = vetor[inicio + i];
-    for (int j = 0; j < tamanhoDireito; ++j)
-        vetorDireito[j] = vetor[meio + 1 + j];
-
-    int indiceEsquerdo = 0, indiceDireito = 0, indiceResultado = inicio;
-    // Mescla os subvetores de volta ao vetor original
-    while (indiceEsquerdo < tamanhoEsquerdo && indiceDireito < tamanhoDireito) {
-        if (vetorEsquerdo[indiceEsquerdo] <= vetorDireito[indiceDireito])
-            vetor[indiceResultado++] = vetorEsquerdo[indiceEsquerdo++];
-        else
-            vetor[indiceResultado++] = vetorDireito[indiceDireito++];
-    }
-
-    // Copia os elementos restantes do subvetor esquerdo, se houver
-    while (indiceEsquerdo < tamanhoEsquerdo)
-        vetor[indiceResultado++] = vetorEsquerdo[indiceEsquerdo++];
-    // Copia os elementos restantes do subvetor direito, se houver
-    while (indiceDireito < tamanhoDireito)
-        vetor[indiceResultado++] = vetorDireito[indiceDireito++];
+void merge(vector<int> &vetor, int inicio, int fim, int meio) {
+    int i, j, k, c[50000];
+	i = inicio;
+	k = inicio;
+	j = meio + 1;
+    	while (i <= meio && j <= fim){
+        	if (vetor[i] < vetor[j]){
+            		c[k] = vetor[i];
+            		k++;
+            		i++;
+        	}
+        	else{
+            		c[k] = vetor[j];
+            		k++;
+            		j++;
+        	}
+    	}
+    	while (i <= meio){
+        	c[k] = vetor[i];
+        	k++;
+        	i++;
+    	}
+    	while (j <= fim){
+        	c[k] = vetor[j];
+        	k++;
+        	j++;
+    	}
+    	for (i = inicio; i < k; i++){
+        	vetor[i] = c[i];
+    	}
 }
 
 // Função recursiva para realizar a ordenação Merge Sort
@@ -154,7 +169,7 @@ void ordenacaoMerge(vector<int> &vetor, int inicio, int fim) {
         ordenacaoMerge(vetor, inicio, meio);
         ordenacaoMerge(vetor, meio + 1, fim);
         // Combina os subvetores ordenados
-        merge(vetor, inicio, meio, fim);
+        merge(vetor, inicio, fim, meio);
     }
 }
 
@@ -194,30 +209,30 @@ void wrapperOrdenacaoQuick(vector<int> &vetor) {
 
 // Função principal
 int main() {
-    const int tamanhoVetor = 100000; // Tamanho do vetor
+    const int tamanhoVetor = 50000; // Tamanho do vetor
     vector<int> vetor = criarVetorAleatorio(tamanhoVetor); // Cria um vetor com números aleatórios
     vector<int> vetorCopia(vetor); // Cria uma cópia do vetor para cada algoritmo de ordenação
 
     // Mede o tempo de execução de cada algoritmo de ordenação
-    double tempoTotalBubble = medirTempo(ordenacaoBubble, vetorCopia);
+    double tempoMedioBubble = medirTempo(ordenacaoBubble, vetorCopia);
     vetorCopia = vetor; // Restaura o vetor original
-    double tempoTotalInsertion = medirTempo(ordenacaoInsertion, vetorCopia);
+    double tempoMedioInsertion = medirTempo(ordenacaoInsertion, vetorCopia);
     vetorCopia = vetor;
-    double tempoTotalSelection = medirTempo(ordenacaoSelection, vetorCopia);
+    double tempoMedioSelection = medirTempo(ordenacaoSelection, vetorCopia);
     vetorCopia = vetor;
-    double tempoTotalQuick = medirTempo(wrapperOrdenacaoQuick, vetorCopia);
+    double tempoMedioQuick = medirTempo(wrapperOrdenacaoQuick, vetorCopia);
     vetorCopia = vetor;
-    double tempoTotalMerge = medirTempo(wrapperOrdenacaoMerge, vetorCopia);
+    double tempoMedioMerge = medirTempo(wrapperOrdenacaoMerge, vetorCopia);
     vetorCopia = vetor;
-    double tempoTotalShell = medirTempo(ordenacaoShell, vetorCopia);
+    double tempoMedioShell = medirTempo(ordenacaoShell, vetorCopia);
 
     // Exibe os tempos médios de execução de cada algoritmo
-    cout << "\nTempo Médio (Bubble Sort): " << tempoTotalBubble << " milissegundos" << endl;
-    cout << "Tempo Médio (Insertion Sort): " << tempoTotalInsertion << " milissegundos" << endl;
-    cout << "Tempo Médio (Selection Sort): " << tempoTotalSelection << " milissegundos" << endl;
-    cout << "Tempo Médio (Quick Sort): " << tempoTotalQuick << " milissegundos" << endl;
-    cout << "Tempo Médio (Merge Sort): " << tempoTotalMerge << " milissegundos" << endl;
-    cout << "Tempo Médio (Shell Sort): " << tempoTotalShell << " milissegundos" << endl;
+    cout << "\nTempo Médio (Bubble Sort): " << tempoMedioBubble << " milissegundos" << endl;
+    cout << "Tempo Médio (Insertion Sort): " << tempoMedioInsertion << " milissegundos" << endl;
+    cout << "Tempo Médio (Selection Sort): " << tempoMedioSelection << " milissegundos" << endl;
+    cout << "Tempo Médio (Quick Sort): " << tempoMedioQuick << " milissegundos" << endl;
+    cout << "Tempo Médio (Merge Sort): " << tempoMedioMerge << " milissegundos" << endl;
+    cout << "Tempo Médio (Shell Sort): " << tempoMedioShell << " milissegundos" << endl;
 
     return 0;
 }
